@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Train Scheduler</title>
+
+  <!-- Added link to the jQuery Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+  <!-- Added a link to Bootstrap-->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+    crossorigin="anonymous">
+
+<script src="https://www.gstatic.com/firebasejs/4.12.0/firebase.js"></script>
+
+<script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
+
+    <style>
+           
+    </style>
+
+</head>
+<body>
+
+  <div class="container">
+        <div class="row">
+                        <div class="jumbotron">
+                                        <h1>Train Times</h1>
+                                        <p>Get times on your next train arrival</p>
+                        </div>    
+        </div>
+       <div class="row">
+                <div class="panel panel-default" id="currentTrainSchedule">
+                                <div class="panel-heading" id="tableHeader">
+                                  <h3 class="panel-title">Current Train Schedule</h3>
+                                </div>
+                                <div class="panel-body">
+                                        <table id="table">
+                                                <tr>
+                                                  <th>Train Name</th>
+                                                  <th>Destination</th>
+                                                  <th>Frequency (min)</th>
+                                                  <th>Next Arrival</th>
+                                                  <th>Minutes Away</th>
+                                                </tr>
+                                                
+
+                                                
+                
+                                                
+                                        </table>
+                                </div>
+                        </div>
+       </div>
+       <div class="row">
+                <div class="panel panel-default" id="addTrain">
+                                <div class="panel-heading">
+                                  <h3 class="panel-title">Add Train</h3>
+                                </div>
+                                <div class="panel-body">
+                                        <div class="form-group">
+                                                <label for="search">Train Name</label>
+                                                <input type="text" class="form-control" id="trainName">
+                                        </div>
+                                        <div class="form-group">
+                                                <label for="search">Destination</label>
+                                                <input type="text" class="form-control" id="destination">
+                                        </div>
+                                        <div class="form-group">
+                                                <label for="search">First Train Time(HH:mm-military time)</label>
+                                                <input type="text" class="form-control" id="firstTrainName">
+                                        </div>
+                                        <div class="form-group">
+                                                <label for="search">Frequency (min)</label>
+                                                <input type="text" class="form-control" id="frequency">
+                                        </div>  
+                                        <button id="submit">Submit</button>
+                                </div>
+                </div>
+       </div>
+        
+  </div>
+
+  <script type="text/javascript">
+
+//THIS SCRIPT IS MEANT TO PERSIST THE INPUTED DATA INTO THE SESSION STORAGE. HOWEVER, THE DATA IS NOT PERSISTENTING EVEN AFTER 
+//THE APPROPRIATE CODE IS WRITTEN. 
+//THIS IS THE LAST PART OF THIS ASSIGNMENT THAT IS TO BE COMPLETED. 
+//THE DATA IS ALSO STORED INTO THE SERVER FIREBASE AND IS BEING LOGGED WITH EACH INPUT
+//HOWEVER, THE DATA IS NOT BEING TRANSFERED TO THE BROWSER WHEN REFRESHED
+
+    $(document).ready(function() {
+            // Initialize Firebase
+        var config = {
+                apiKey: "AIzaSyDwNg9A3J9OboM6FnkJ5XRbYknK3FjSCzI",
+                authDomain: "train-schedule-db471.firebaseapp.com",
+                databaseURL: "https://train-schedule-db471.firebaseio.com",
+                projectId: "train-schedule-db471",
+                storageBucket: "train-schedule-db471.appspot.com",
+                messagingSenderId: "654036874950"
+        };
+        
+        console.log(firebase.initializeApp(config));
+
+        var database = firebase.database();
+
+        var trainName = "";
+        var destination = "";
+        var firstTrain = "";
+        var frequency = "";
+
+        $("#submit").on("click", function(event) {
+      // Don't refresh the page!
+      event.preventDefault();
+
+      // YOUR TASK!!!
+      // Code in the logic for storing and retrieving the most recent user.
+      // Don't forget to provide initial data to your Firebase database.
+      trainName = $("#trainName").val().trim();
+      destination = $("#destination").val().trim();
+      firstTrain = $("#firstTrainName").val().trim();
+      frequency = $("#frequency").val().trim();
+
+      var inputs = {
+              trainName:trainName,
+              destination:destination,
+              firstTrain:firstTrain,
+              frequency:frequency
+      }  
+      database.ref().set({
+        trainName: trainName,
+        destination: destination,
+        firstTrain: firstTrain,
+        frequency: frequency
+      });
+
+      database.ref().push(inputs);
+
+      database.ref().on("value", function(snapshot) {
+
+        
+                console.log(snapshot.val());
+                console.log(snapshot.val().name);
+                console.log(snapshot.val().email);
+                console.log(snapshot.val().age);
+                console.log(snapshot.val().comment);
+
+        
+                $("#trainName").text(snapshot.val().name);
+                $("#destination").text(snapshot.val().email);
+                $("#firstTrainName").text(snapshot.val().age);
+                $("#frequency").text(snapshot.val().comment);
+
+        
+        }, function(errorObject) {
+                console.log("Errors handled: " + errorObject.code);
+        });
+
+        database.ref().on("child_added", function(childSnapshot, prevChildKey) {
+
+                console.log(childSnapshot.val());
+
+
+                var trainName = childSnapshot.val().trainName;
+                var destination = childSnapshot.val().destination;
+                var firstTrain = childSnapshot.val().firstTrain;
+                var frequency = childSnapshot.val().frequency;
+
+
+                console.log(trainName);
+                console.log(destination);
+                console.log(firstTrain);
+                console.log(frequency);
+        });
+
+        cellRow = $("<tr>");
+        console.log(cellRow);
+        cellColumn0 = $("<td>");
+        sessionStorage.setItem("trainName", trainName);
+        cellColumn0.text(sessionStorage.getItem("trainName"));
+        console.log(cellColumn0);
+        cellRow.append(cellColumn0);
+        cellTable = $("#table")
+        cellTable.append(cellRow);
+
+        cellColumn1 = $("<td>")
+        
+        cellColumn1.text(destination);
+        cellRow.append(cellColumn1);
+        cellTable.append(cellRow);
+        sessionStorage.setItem("destination", destination);
+
+        cellColumn2 = $("<td>"); 
+        cellColumn2.text(frequency);
+        cellRow.append(cellColumn2);
+        cellTable.append(cellRow);
+
+       
+        function nextArrival(){
+                console.log(firstTrain);
+                var randomFormat = "HH:mm";
+                var convertedTime = moment(firstTrain, randomFormat);
+                console.log(convertedTime);
+                console.log(moment(convertedTime).toNow());
+                console.log(frequency);
+                var currentTime = moment();
+                var diffTime = moment().diff(moment(convertedTime), "minutes");
+                var tRemainder = diffTime % frequency;
+                var tMinutesTillTrain = frequency - tRemainder;
+                var nextTrain = moment().add(tMinutesTillTrain, "minutes");
+                console.log(nextTrain);
+                cellColumn3 = $("<td>");
+                sessionStorage.setItem("nextTrain",nextTrain);
+                cellColumn0.text(sessionStorage.getItem("trainName"));
+                cellColumn3.text(nextTrain.format("hh:mm"));
+                cellRow.append(cellColumn3);
+                cellTable.append(cellRow);
+                cellColumn4 = $("<td>");
+                sessionStorage.setItem("",nextTrain);
+                cellColumn4.text(tMinutesTillTrain);
+                cellRow.append(cellColumn4);
+                cellTable.append(cellRow);
+                sessionStorage.setItem("nextArrival",tMinutesTillTrain);
+
+        }
+        nextArrival();
+       
+    });
+    
+});
+
+</script>
+
+</body>
+</html>
